@@ -21,7 +21,7 @@ float cameraSpeed; // adjust accordingly
 float lastX = 400, lastY = 300;
 bool firstMouse = true;
 float yaw = 0, pitch = 0;
-float fov;
+float fov=45;
 int main()
 {   
     // glfw: initialize and configure
@@ -247,15 +247,24 @@ void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-    
+    glm::vec3 dir = glm::vec3(0);//dir代表当前速度方向
+    glm::vec3 mv_dir = cameraFront;
+    mv_dir.y = 0;
+    mv_dir = glm::normalize(mv_dir);
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraFront;
+        cameraPos += cameraSpeed * mv_dir;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront;
+        cameraPos -= cameraSpeed * mv_dir;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        cameraPos -= glm::normalize(glm::cross(mv_dir, cameraUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        cameraPos += glm::normalize(glm::cross(mv_dir, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        cameraPos -= glm::normalize(cameraUp) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        cameraPos += glm::normalize(cameraUp) * cameraSpeed;
+
+    
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
