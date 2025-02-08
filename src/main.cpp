@@ -12,7 +12,10 @@ void processInput(GLFWwindow* window);
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+float cameraSpeed; // adjust accordingly
 int main()
 {
     // glfw: initialize and configure
@@ -137,7 +140,7 @@ int main()
     Shader ourShader("res/shaders/3.3.shader.vs", "res/shaders/3.3.shader.fs");
 
     //纹理单元设置
-    Texture texture1("res/textures/container.jpg"), texture2("res/textures/awesoneface.png");
+    Texture texture1("res/textures/container.jpg"), texture2("res/textures/awesomeface.png");
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
@@ -148,45 +151,32 @@ int main()
     ourShader.setInt("texture2", 1);
 
     float mixrate = 0.5;
-    float FOV = 45;
+    float GO = -3;
     ourShader.setFloat("mixrate", mixrate);
     glEnable(GL_DEPTH_TEST);
-
+    float deltaTime = 0.0f; // 当前帧与上一帧的时间差
+    float lastFrame = 0.0f; // 上一帧的时间
 
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
     {
-        
+        cameraSpeed = 2.5 * deltaTime;
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
         // input
         // -----
         processInput(window);
-        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        {
-            mixrate += 0.005;
-        }
-        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        {
-            mixrate -= 0.005;
-        }
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        {
-            FOV += 0.05;
-        }
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        {
-            FOV -= 0.005;
-        }
         ourShader.setFloat("mixrate", mixrate);
         // render
         // ------
         //观察矩阵
-        glm::mat4 view = glm::mat4(1.0f);
-        // 注意，我们将矩阵向我们要进行移动场景的反方向移动。
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        glm::mat4 view = glm::mat4(1);
+        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
         glm::mat4 projection = glm::mat4(1.0f);
-        projection = glm::perspective(glm::radians(FOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians((float)45.0), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
         unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
         unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
@@ -243,6 +233,15 @@ void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos += cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
