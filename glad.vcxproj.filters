@@ -79,5 +79,12 @@
     <None Include="Dependencies\GLEW\doc\wglew.html" />
     <None Include="res\shaders\3.3.shader.vs" />
     <None Include="res\shaders\3.3.shader.fs" />
+    <None Include="res\shaders\lightshader.vs" />
+    <None Include="res\shaders\lightshader.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\textures\container.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>
