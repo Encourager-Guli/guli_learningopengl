@@ -173,10 +173,10 @@ int main()
     float constant = 1.0f;
     float linear = 0.09f;
     float quadratic = 0.032f;
-    dirLight d0("dirLight", glm::vec3(-0.2f, -1.0f, -0.3f), 
-                         glm::vec3(0.05f, 0.05f, 0.05f), 
+    dirLight d0("dirLight",glm::vec3(0.05f, 0.05f, 0.05f), 
                          glm::vec3(0.4f, 0.4f, 0.4f), 
-                         glm::vec3(0.5f, 0.5f, 0.5f));
+                         glm::vec3(0.5f, 0.5f, 0.5f),
+                         glm::vec3(-0.2f, -1.0f, -0.3f));
     pointLight p0("pointLights[0]", ambient, diffuse, specular, pointLightPositions[0], constant, linear, quadratic);
     pointLight p1("pointLights[1]", ambient, diffuse, specular, pointLightPositions[1], constant, linear, quadratic);
     pointLight p2("pointLights[2]", ambient, diffuse, specular, pointLightPositions[2], constant, linear, quadratic);
@@ -189,8 +189,7 @@ int main()
 
 
     //绑定材质
-    box.Bind(GL_TEXTURE0);
-    box_specular.Bind(GL_TEXTURE1);
+    
     glEnable(GL_DEPTH_TEST);
     
     // render loop
@@ -198,10 +197,7 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         
-        if (deltaTime != 0)//显示帧数
-        {
-            std::cout << 1.0 / deltaTime<<'\r';
-        }
+        
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -214,12 +210,18 @@ int main()
         ourShader.use();
  
         
-        ourShader.setVec3("viewPos", camera.Position);//摄像机处理
+        // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
 
+        // world transformation
+        glm::mat4 model = glm::mat4(1.0f);
+        ourShader.setMat4("model", model);
+
+        box.Bind(GL_TEXTURE0);
+        box_specular.Bind(GL_TEXTURE1);
 
         glBindVertexArray(VAO);
         for (unsigned int i = 0; i < 10; i++)
@@ -239,23 +241,14 @@ int main()
         glBindVertexArray(lightVAO);
         for (unsigned int i = 0; i < 4; i++)
         {
-            lightShader.use();
-            lightShader.setMat4("projection", projection);
-            lightShader.setMat4("view", view);
+            
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, pointLightPositions[i]);//移动矩阵
             model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
             lightShader.setMat4("model", model);
-
-            glBindVertexArray(lightVAO);
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
         
-        /*texture1.Bind(GL_TEXTURE0);
-        texture2.Bind(GL_TEXTURE1);*/
-       
-       
-
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
