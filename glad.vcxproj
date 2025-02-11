@@ -174,8 +174,11 @@
     <None Include="Dependencies\GLEW\doc\wglew.html" />
     <None Include="res\shaders\3.3.shader.fs" />
     <None Include="res\shaders\3.3.shader.vs" />
+    <None Include="res\shaders\depth_testing.fs" />
+    <None Include="res\shaders\depth_testing.vs" />
     <None Include="res\shaders\lightshader.fs" />
     <None Include="res\shaders\lightshader.vs" />
+    <None Include="res\shaders\shaderSingleColor.fs" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\container.jpg" />

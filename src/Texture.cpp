@@ -46,6 +46,6 @@ void Texture::Bind(unsigned int channel) const
 {
     glActiveTexture(channel);
     glBindTexture(GL_TEXTURE_2D, ID);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    /*glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);*/
 }
 
