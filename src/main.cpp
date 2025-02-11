@@ -9,7 +9,7 @@
 #include"Texture.h"
 #include"Camera.h"
 #include "Lights.h"
-#include"Model.h"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -159,10 +159,9 @@ int main()
     Shader ourShader("res/shaders/3.3.shader.vs", "res/shaders/3.3.shader.fs");
     Shader lightShader("res/shaders/lightshader.vs", "res/shaders/lightshader.fs");
     //纹理单元设置
-    myTexture box("res/textures/container2.png");
-    myTexture box_specular("res/textures/lighting_maps_specular_color.png");
-    char a[] = "res/models/Patchouli/patch.obj";
-    Model ourModel(a);
+    Texture box("res/textures/container2.png");
+    Texture box_specular("res/textures/lighting_maps_specular_color.png");
+
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
     ourShader.use();
@@ -221,10 +220,22 @@ int main()
         // world transformation
         glm::mat4 model = glm::mat4(1.0f);
         ourShader.setMat4("model", model);
-        ourModel.Draw(ourShader);
 
-        
+        box.Bind(GL_TEXTURE0);
+        box_specular.Bind(GL_TEXTURE1);
 
+        glBindVertexArray(VAO);
+        for (unsigned int i = 0; i < 10; i++)
+        {
+            // calculate the model matrix for each object and pass it to shader before drawing
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            float angle = 20.0f * i;
+            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            ourShader.setMat4("model", model);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
         lightShader.use();
         lightShader.setMat4("projection", projection);
         lightShader.setMat4("view", view);

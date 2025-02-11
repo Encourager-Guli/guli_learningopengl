@@ -2,7 +2,7 @@
 #include <glad/glad.h>
 #include"stb_image.h"
 #include<iostream>
-myTexture::myTexture(const char * texture_path)
+Texture::Texture(const char * texture_path)
 {
     glGenTextures(1, &ID);
     glBindTexture(GL_TEXTURE_2D, ID);
@@ -42,7 +42,7 @@ myTexture::myTexture(const char * texture_path)
     stbi_image_free(data);
 }
 
-void myTexture::Bind(unsigned int channel) const
+void Texture::Bind(unsigned int channel) const
 {
     glActiveTexture(channel);
     glBindTexture(GL_TEXTURE_2D, ID);

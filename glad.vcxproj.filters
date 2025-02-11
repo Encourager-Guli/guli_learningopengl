@@ -36,9 +36,6 @@
     <ClCompile Include="src\Lights.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\Model.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Dependencies\glad\include\glad\glad.h">
@@ -74,9 +71,6 @@
     <ClInclude Include="src\Lights.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\Model.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Dependencies\GLEW\doc\advanced.html" />
@@ -93,8 +87,6 @@
     <None Include="res\shaders\3.3.shader.fs" />
     <None Include="res\shaders\lightshader.vs" />
     <None Include="res\shaders\lightshader.fs" />
-    <None Include="res\shaders\model_loading.vs" />
-    <None Include="res\shaders\model_loading.fs" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\container.jpg">

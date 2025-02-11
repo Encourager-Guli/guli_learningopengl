@@ -1,13 +1,13 @@
 #pragma once
 
-class myTexture
+class Texture
 {
 public:
 	unsigned int ID;
 	int width, height, nrChannels;
 
 
-	myTexture(const char* texture_path);
+	Texture(const char* texture_path);
 	void Bind(unsigned int channel)const;
 private:
 };
