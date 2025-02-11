@@ -6,8 +6,8 @@ in vec3 FragPos;
 in vec2 TexCoords;  
 
 struct Material {
-    sampler2D diffuse1;
-    sampler2D specular1;
+    sampler2D diffuse;
+    sampler2D specular;
     float     shininess;
 }; 
 
