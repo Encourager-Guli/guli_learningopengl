@@ -144,6 +144,7 @@
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Lights.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\stb_includer.cpp" />
     <ClCompile Include="src\Texture.cpp" />
@@ -157,6 +158,7 @@
     <ClInclude Include="Dependencies\GLEW\include\GL\wglew.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Lights.h" />
+    <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\stb_image.h" />
     <ClInclude Include="src\Texture.h" />
@@ -176,6 +178,8 @@
     <None Include="res\shaders\3.3.shader.vs" />
     <None Include="res\shaders\lightshader.fs" />
     <None Include="res\shaders\lightshader.vs" />
+    <None Include="res\shaders\model_loading.fs" />
+    <None Include="res\shaders\model_loading.vs" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\container.jpg" />
