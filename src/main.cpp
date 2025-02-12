@@ -255,10 +255,14 @@ int main()
     unsigned int skyboxlayout[] = { 3 };
     VAO skyboxVAO(skyboxVertices, sizeof(skyboxVertices), skyboxlayout, 1);
 
+    unsigned int mirrorlayout[] = { 3,3 };
+    VAO mirrorVAO(vertices, sizeof(vertices), mirrorlayout, 2);
+
 
     Shader ourShader("res/shaders/depth_testing.vs", "res/shaders/depth_testing.fs");
     Shader screenShader("res/shaders/screen.vs", "res/shaders/screen.fs");
     Shader skyboxShader("res/shaders/skybox.vs", "res/shaders/skybox.fs");
+    Shader mirrorShader("res/shaders/mirror.vs", "res/shaders/mirror.fs");
     Texture cubeTexture("res/textures/cobblestone.png", GL_REPEAT);
     Texture floorTexture("res/textures/bricks.png", GL_REPEAT);
     Texture mywindow("res/textures/blending_transparent_window.png", GL_REPEAT);
@@ -271,7 +275,8 @@ int main()
     screenShader.setInt("screenTexture", 0);
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
-
+    mirrorShader.use();
+    mirrorShader.setInt("skybox", 0);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
@@ -314,7 +319,7 @@ int main()
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
+        glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
         // ... 设置观察和投影矩阵
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -322,17 +327,30 @@ int main()
         glm::mat4 model = glm::mat4(1.0f);
         
        
-        ourShader.use();
+        //画方块
+        mirrorShader.use();
+        mirrorShader.setMat4("projection", projection);
+        mirrorShader.setMat4("view", view);
+        mirrorShader.setVec3("cameraPos", camera.Position);
+        mirrorVAO.bind();
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+        mirrorShader.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+        mirrorShader.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
         
-        glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
-       
+        
+        ourShader.use();
         
         // view/projection transformations
         
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
-
-        
         
         // floor
         planeVAO.bind();
@@ -341,21 +359,9 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
  
-        cubeVAO.bind();
-        /*glBindVertexArray(cubeVAO);*/
-        cubeTexture.Bind(GL_TEXTURE0);
-        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
-        ourShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-        ourShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glBindVertexArray(0);
 
 
-        std::map<float, glm::vec3> sorted;
+        /*std::map<float, glm::vec3> sorted;
         for (unsigned int i = 0; i < vegetation.size(); i++)
         {
             float distance = glm::length(camera.Position - vegetation[i]);
@@ -369,7 +375,7 @@ int main()
             model = glm::translate(model, it->second);
             ourShader.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 6);
-        }
+        }*/
         std::vector<unsigned char> pixels(SCR_WIDTH * SCR_HEIGHT * 4);
         glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RED, GL_UNSIGNED_BYTE, pixels.data());
         glDepthFunc(GL_LEQUAL);
