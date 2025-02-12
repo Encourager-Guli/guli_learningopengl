@@ -36,6 +36,9 @@
     <ClCompile Include="src\Lights.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\VAO.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Dependencies\glad\include\glad\glad.h">
@@ -69,6 +72,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\Lights.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\VAO.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

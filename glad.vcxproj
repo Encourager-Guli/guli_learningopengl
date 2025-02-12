@@ -147,6 +147,7 @@
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\stb_includer.cpp" />
     <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\VAO.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Dependencies\glad\include\glad\glad.h" />
@@ -160,6 +161,7 @@
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\stb_image.h" />
     <ClInclude Include="src\Texture.h" />
+    <ClInclude Include="src\VAO.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Dependencies\GLEW\doc\advanced.html" />
