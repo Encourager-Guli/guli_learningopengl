@@ -87,6 +87,11 @@
     <None Include="res\shaders\3.3.shader.fs" />
     <None Include="res\shaders\lightshader.vs" />
     <None Include="res\shaders\lightshader.fs" />
+    <None Include="res\shaders\depth_testing.fs" />
+    <None Include="res\shaders\depth_testing.vs" />
+    <None Include="res\shaders\shaderSingleColor.fs" />
+    <None Include="res\shaders\screen.vs" />
+    <None Include="res\shaders\screen.fs" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\container.jpg">

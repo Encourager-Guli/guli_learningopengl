@@ -7,7 +7,7 @@ public:
 	int width, height, nrChannels;
 
 
-	Texture(const char* texture_path);
+	Texture(const char* texture_path,unsigned int WARP_MODE);
 	void Bind(unsigned int channel)const;
 private:
 };
