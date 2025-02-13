@@ -161,7 +161,7 @@ int main()
     //纹理单元设置
     myTexture box("res/textures/container2.png");
     myTexture box_specular("res/textures/lighting_maps_specular_color.png");
-    char a[] = "res/models/backpack.obj";
+    char a[] = "res/models/nanosuit_reflection/nanosuit.obj";
     Model ourModel(a);
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
