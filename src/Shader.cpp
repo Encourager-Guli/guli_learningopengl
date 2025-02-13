@@ -63,6 +63,48 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
     glDeleteShader(fragment);
 }
 
+void Shader::attach_Geo(const char* geoPath)
+{
+    // 1. retrieve the vertex/fragment source code from filePath
+    std::string geoCode;
+    std::ifstream gShaderFile;
+    // ensure ifstream objects can throw exceptions:
+    gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    try
+    {
+        // open files
+        gShaderFile.open(geoPath);
+        std::stringstream gShaderStream;
+        // read file's buffer contents into streams
+        gShaderStream << gShaderFile.rdbuf();
+        // close file handlers
+        gShaderFile.close();
+        // convert stream into string
+        geoCode = gShaderStream.str();
+    }
+    catch (std::ifstream::failure& e)
+    {
+        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+    }
+    const char* gShaderCode = geoCode.c_str();
+    // 2. compile shaders
+    unsigned int geo;
+    // vertex shader
+    geo = glCreateShader(GL_GEOMETRY_SHADER);
+    glShaderSource(geo, 1, &gShaderCode, NULL);
+    glCompileShader(geo);
+    checkCompileErrors(geo, "GEO");
+    
+    
+    glAttachShader(ID, geo);
+    glLinkProgram(ID);
+    checkCompileErrors(ID, "PROGRAM");
+    // delete the shaders as they're linked into our program now and no longer necessary
+    glDeleteShader(geo);
+}
+
+
+
 void Shader::use()
 {
     glUseProgram(ID);

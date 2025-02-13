@@ -182,6 +182,11 @@ int main()
          1.0f, -1.0f,  1.0f, 0.0f,
          1.0f,  1.0f,  1.0f, 1.0f
     };
+    float geoV[] = { -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // 左上
+     0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // 右上
+     0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // 右下
+    -0.5f, -0.5f, 1.0f, 1.0f, 0.0f  // 左下 
+    };
     vector<glm::vec3> vegetation;
     vegetation.push_back(glm::vec3(-1.5f, 0.0f, -0.48f));
     vegetation.push_back(glm::vec3(1.5f, 0.0f, 0.51f));
@@ -243,7 +248,7 @@ int main()
     unsigned int cubelayout[] = { 3,2 };
     VAO cubeVAO(cubeVertices,sizeof(cubeVertices),cubelayout,2);
 
-    unsigned int planelayout[] = { 3,2 };
+   /* unsigned int planelayout[] = { 3,2 };
     VAO planeVAO(planeVertices, sizeof(planeVertices), planelayout, 2);
     
     unsigned int transparentlayout[] = { 3,2 };
@@ -258,56 +263,28 @@ int main()
     unsigned int mirrorlayout[] = { 3,3 };
     VAO mirrorVAO(vertices, sizeof(vertices), mirrorlayout, 2);
 
-
+    unsigned int geolayout[] = { 2,3 };
+    VAO geoVAO(geoV, sizeof(geoV), geolayout, 2);*/
     Shader ourShader("res/shaders/depth_testing.vs", "res/shaders/depth_testing.fs");
-    Shader screenShader("res/shaders/screen.vs", "res/shaders/screen.fs");
+    /*Shader screenShader("res/shaders/screen.vs", "res/shaders/screen.fs");
     Shader skyboxShader("res/shaders/skybox.vs", "res/shaders/skybox.fs");
-    Shader mirrorShader("res/shaders/mirror.vs", "res/shaders/mirror.fs");
+    Shader mirrorShader("res/shaders/mirror.vs", "res/shaders/mirror.fs");*/
     Texture cubeTexture("res/textures/cobblestone.png", GL_REPEAT);
-    Texture floorTexture("res/textures/bricks.png", GL_REPEAT);
+    /*Texture floorTexture("res/textures/bricks.png", GL_REPEAT);
     Texture mywindow("res/textures/blending_transparent_window.png", GL_REPEAT);
     unsigned int cubemapTexture = loadCubemap(textures_faces);
-    
-
+    screenShader.attach_Geo("res/shaders/geo.gs");*/
+    ourShader.attach_Geo("res/shaders/geo.gs");
     ourShader.use();
     ourShader.setInt("texture1", 0);
-    screenShader.use();
+    /*screenShader.use();
     screenShader.setInt("screenTexture", 0);
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
     mirrorShader.use();
-    mirrorShader.setInt("skybox", 0);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    mirrorShader.setInt("skybox", 0);*/
     
-    
-   /* glEnable(GL_CULL_FACE);*/
-
-    unsigned int framebuffer;
-    glGenFramebuffers(1, &framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-    unsigned int texColorBuffer;
-    glGenTextures(1, &texColorBuffer);
-    glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
-    // 将它附加到当前绑定的帧缓冲对象
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
-
-    unsigned int rbo;
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    unsigned int uboMatrices;//设置缓冲绑定至点0
+    unsigned int uboMatrices;
     glGenBuffers(1, &uboMatrices);
 
     glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
@@ -317,7 +294,7 @@ int main()
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
 
     ourShader.setUniformBind("Matrices", 0);
-    mirrorShader.setUniformBind("Matrices", 0);
+    /*mirrorShader.setUniformBind("Matrices", 0);*/
     while (!glfwWindowShouldClose(window))
     {
         
@@ -326,7 +303,8 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         processInput(window);
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
@@ -344,85 +322,13 @@ int main()
         glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-       
-        //画方块
-        mirrorShader.use();
-       /* mirrorShader.setMat4("projection", projection);
-        mirrorShader.setMat4("view", view);*/
-        mirrorShader.setVec3("cameraPos", camera.Position);
-        mirrorVAO.bind();
-        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
-        mirrorShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-        mirrorShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glBindVertexArray(0);
-        
-        
         ourShader.use();
+        ourShader.setMat4("model", model);
+        ourShader.setFloat("time", glfwGetTime());
+        cubeTexture.Bind(GL_TEXTURE0);
+        cubeVAO.bind();
         
-        // view/projection transformations
-        
-       /* ourShader.setMat4("projection", projection);
-        ourShader.setMat4("view", view);*/
-        
-        // floor
-        planeVAO.bind();
-        floorTexture.Bind(GL_TEXTURE0);
-        ourShader.setMat4("model", glm::mat4(1.0f));
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        glBindVertexArray(0);
- 
-
-
-        std::map<float, glm::vec3> sorted;
-        for (unsigned int i = 0; i < vegetation.size(); i++)
-        {
-            float distance = glm::length(camera.Position - vegetation[i]);
-            sorted[distance] = vegetation[i];
-        }
-        mywindow.Bind(GL_TEXTURE0);
-        transparentVAO.bind();
-        for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it)
-        {
-            model = glm::mat4(1);
-            model = glm::translate(model, it->second);
-            ourShader.setMat4("model", model);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-        }
-        std::vector<unsigned char> pixels(SCR_WIDTH * SCR_HEIGHT * 4);
-        glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RED, GL_UNSIGNED_BYTE, pixels.data());
-        glDepthFunc(GL_LEQUAL);
-        glDepthMask(GL_FALSE);
-        skyboxShader.use();
-        skyboxShader.setMat4("model", model);
-        skyboxShader.setMat4("projection", projection);
-        glm::mat4 skyview = glm::mat4(glm::mat3(camera.GetViewMatrix()));
-        skyboxShader.setMat4("view", skyview);
-        glActiveTexture(GL_TEXTURE0);
-        skyboxVAO.bind();
-        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        glDepthMask(GL_TRUE);
-        //for (int i = 0; i < 10 && i < pixels.size(); ++i) { // Print first few pixel values
-        //    printf("%d ", pixels[i]);
-        //}
-        //printf("\n");
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glDisable(GL_DEPTH_TEST);
-
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
-        glClear(GL_COLOR_BUFFER_BIT);
-        screenShader.use();
-        quadVAO.bind();
-        glBindTexture(GL_TEXTURE_2D, texColorBuffer);	// use the color attachment texture as the texture of the quad plane
-        glActiveTexture(GL_TEXTURE0);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        
         
         
 

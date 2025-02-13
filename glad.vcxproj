@@ -178,6 +178,7 @@
     <None Include="res\shaders\3.3.shader.vs" />
     <None Include="res\shaders\depth_testing.fs" />
     <None Include="res\shaders\depth_testing.vs" />
+    <None Include="res\shaders\geo.gs" />
     <None Include="res\shaders\lightshader.fs" />
     <None Include="res\shaders\lightshader.vs" />
     <None Include="res\shaders\mirror.fs" />

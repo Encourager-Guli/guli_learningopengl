@@ -11,6 +11,7 @@ public:
 
     // 构造器读取并构建着色器
     Shader(const char* vertexPath, const char* fragmentPath);
+    void attach_Geo(const char* geoPath);
     // 使用/激活程序
     void use();
     // uniform工具函数
