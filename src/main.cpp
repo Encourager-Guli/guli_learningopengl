@@ -307,7 +307,17 @@ int main()
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
+    unsigned int uboMatrices;//设置缓冲绑定至点0
+    glGenBuffers(1, &uboMatrices);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
+
+    ourShader.setUniformBind("Matrices", 0);
+    mirrorShader.setUniformBind("Matrices", 0);
     while (!glfwWindowShouldClose(window))
     {
         
@@ -323,14 +333,22 @@ int main()
         // ... 设置观察和投影矩阵
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
-        // world transformation
         glm::mat4 model = glm::mat4(1.0f);
-        
+
+        //设置公共变量存储摄像机矩阵
+        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
        
         //画方块
         mirrorShader.use();
-        mirrorShader.setMat4("projection", projection);
-        mirrorShader.setMat4("view", view);
+       /* mirrorShader.setMat4("projection", projection);
+        mirrorShader.setMat4("view", view);*/
         mirrorShader.setVec3("cameraPos", camera.Position);
         mirrorVAO.bind();
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
@@ -349,8 +367,8 @@ int main()
         
         // view/projection transformations
         
-        ourShader.setMat4("projection", projection);
-        ourShader.setMat4("view", view);
+       /* ourShader.setMat4("projection", projection);
+        ourShader.setMat4("view", view);*/
         
         // floor
         planeVAO.bind();
@@ -361,7 +379,7 @@ int main()
  
 
 
-        /*std::map<float, glm::vec3> sorted;
+        std::map<float, glm::vec3> sorted;
         for (unsigned int i = 0; i < vegetation.size(); i++)
         {
             float distance = glm::length(camera.Position - vegetation[i]);
@@ -375,7 +393,7 @@ int main()
             model = glm::translate(model, it->second);
             ourShader.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 6);
-        }*/
+        }
         std::vector<unsigned char> pixels(SCR_WIDTH * SCR_HEIGHT * 4);
         glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RED, GL_UNSIGNED_BYTE, pixels.data());
         glDepthFunc(GL_LEQUAL);

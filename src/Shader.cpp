@@ -98,6 +98,12 @@ void Shader::setVec3(const std::string& name, float x, float y, float z) const
     glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
 }
 
+void Shader::setUniformBind(const std::string& name, unsigned int channel) const
+{
+    unsigned int uniformBlockIndex = glGetUniformBlockIndex(ID, name.c_str());//找到uniform位置
+    glUniformBlockBinding(ID, uniformBlockIndex, channel);//设置绑定点
+}
+
 
 void Shader::checkCompileErrors(unsigned int shader, std::string type)
 {
