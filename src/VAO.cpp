@@ -2,6 +2,7 @@
 
 VAO::VAO(float* buffer, unsigned int buffer_size, const unsigned int layout[], unsigned int num_layouts)
 {
+    this->num_layouts = num_layouts;
     glGenVertexArrays(1, &VAOID);
     glGenBuffers(1, &VBOID);
     glBindVertexArray(VAOID);
@@ -28,3 +29,5 @@ void VAO::bind()
 {
     glBindVertexArray(VAOID);
 }
+
+

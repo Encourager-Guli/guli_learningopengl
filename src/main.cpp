@@ -12,6 +12,7 @@
 #include <vector>
 #include<map>
 #include"VAO.h"
+#include <string>
 using namespace std;
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -182,6 +183,16 @@ int main()
          1.0f, -1.0f,  1.0f, 0.0f,
          1.0f,  1.0f,  1.0f, 1.0f
     };
+    float quadVertices2[] = {
+        // 位置          // 颜色
+        -0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+         0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
+        -0.05f, -0.05f,  0.0f, 0.0f, 1.0f,
+
+        -0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+         0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
+         0.05f,  0.05f,  0.0f, 1.0f, 1.0f
+    };
     float geoV[] = { -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // 左上
      0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // 右上
      0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // 右下
@@ -265,6 +276,10 @@ int main()
 
     unsigned int geolayout[] = { 2,3 };
     VAO geoVAO(geoV, sizeof(geoV), geolayout, 2);
+
+    unsigned int instancelayout[] = { 2,3 };
+    VAO instanceVAO(quadVertices2, sizeof(quadVertices2), instancelayout, 2);
+
     Shader ourShader("res/shaders/depth_testing.vs", "res/shaders/depth_testing.fs");
     /*Shader screenShader("res/shaders/screen.vs", "res/shaders/screen.fs");
     Shader skyboxShader("res/shaders/skybox.vs", "res/shaders/skybox.fs");
@@ -274,7 +289,6 @@ int main()
     Texture mywindow("res/textures/blending_transparent_window.png", GL_REPEAT);
     unsigned int cubemapTexture = loadCubemap(textures_faces);
     screenShader.attach_Geo("res/shaders/geo.gs");*/
-    ourShader.attach_Geo("res/shaders/geo.gs");
     ourShader.use();
     ourShader.setInt("texture1", 0);
     /*screenShader.use();
@@ -295,6 +309,31 @@ int main()
 
     ourShader.setUniformBind("Matrices", 0);
     /*mirrorShader.setUniformBind("Matrices", 0);*/
+    glm::vec2 translations[100];
+    int index = 0;
+    float offset = 0.1f;
+    for (int y = -10; y < 10; y += 2)
+    {
+        for (int x = -10; x < 10; x += 2)
+        {
+            glm::vec2 translation;
+            translation.x = (float)x / 10.0f + offset;
+            translation.y = (float)y / 10.0f + offset;
+            translations[index++] = translation;
+        }
+    }
+    instanceVAO.bind();
+    unsigned int instanceVBO;
+    glGenBuffers(1, &instanceVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &translations[0], GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glVertexAttribDivisor(2, 1);
+    glBindVertexArray(0);
     while (!glfwWindowShouldClose(window))
     {
         
@@ -323,13 +362,9 @@ int main()
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         ourShader.use();
-        ourShader.setMat4("model", model);
-        ourShader.setMat4("tprojection", projection);
-        ourShader.setFloat("time", glfwGetTime());
-        cubeTexture.Bind(GL_TEXTURE0);
-        mirrorVAO.bind();
         
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        instanceVAO.bind();
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100);
         
         
 
