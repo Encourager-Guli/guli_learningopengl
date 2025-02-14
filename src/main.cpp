@@ -37,7 +37,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+    /*glfwWindowHint(GLFW_SAMPLES, 16);*/
     
     // glfw window creation
     // --------------------
@@ -279,7 +279,7 @@ int main()
     mirrorShader.setInt("skybox", 0);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
+    glEnable(GL_MULTISAMPLE);
     
    /* glEnable(GL_CULL_FACE);*/
 
@@ -289,25 +289,48 @@ int main()
 
     unsigned int texColorBuffer;
     glGenTextures(1, &texColorBuffer);
-    glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texColorBuffer);
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, 800, 600, GL_TRUE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
     // 将它附加到当前绑定的帧缓冲对象
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, texColorBuffer, 0);
 
     unsigned int rbo;
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER,4, GL_DEPTH24_STENCIL8, 800, 600);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);//设置缓冲绑定至点0
+
+    // configure second post-processing framebuffer
+    unsigned int intermediateFBO;
+    glGenFramebuffers(1, &intermediateFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, intermediateFBO);
+    // create a color attachment texture
+    unsigned int screenTexture;
+    glGenTextures(1, &screenTexture);
+    glBindTexture(GL_TEXTURE_2D, screenTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, screenTexture, 0);	// we only need a color buffer
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        cout << "ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete!" << endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    unsigned int uboMatrices;//设置缓冲绑定至点0
+
+
+
+
+
+
+    unsigned int uboMatrices;
     glGenBuffers(1, &uboMatrices);
 
     glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
@@ -326,7 +349,7 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         processInput(window);
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);//绑定我的缓冲
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
@@ -347,8 +370,6 @@ int main()
        
         //画方块
         mirrorShader.use();
-       /* mirrorShader.setMat4("projection", projection);
-        mirrorShader.setMat4("view", view);*/
         mirrorShader.setVec3("cameraPos", camera.Position);
         mirrorVAO.bind();
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
@@ -364,13 +385,6 @@ int main()
         
         
         ourShader.use();
-        
-        // view/projection transformations
-        
-       /* ourShader.setMat4("projection", projection);
-        ourShader.setMat4("view", view);*/
-        
-        // floor
         planeVAO.bind();
         floorTexture.Bind(GL_TEXTURE0);
         ourShader.setMat4("model", glm::mat4(1.0f));
@@ -394,8 +408,7 @@ int main()
             ourShader.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 6);
         }
-        std::vector<unsigned char> pixels(SCR_WIDTH * SCR_HEIGHT * 4);
-        glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RED, GL_UNSIGNED_BYTE, pixels.data());
+        
         glDepthFunc(GL_LEQUAL);
         glDepthMask(GL_FALSE);
         skyboxShader.use();
@@ -408,19 +421,32 @@ int main()
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glDepthMask(GL_TRUE);
-        //for (int i = 0; i < 10 && i < pixels.size(); ++i) { // Print first few pixel values
-        //    printf("%d ", pixels[i]);
-        //}
-        //printf("\n");
+        
+
+
+        //到这为止，我们在frame中绘制了所有我们需要的东西，缓冲处于超采样状态下
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
+        glBlitFramebuffer(0, 0, 800, 600, 0, 0, 800, 600, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, intermediateFBO);//目前处于中间帧状态已经处理为能显示的正常采样
+        std::vector<unsigned char> pixels(SCR_WIDTH * SCR_HEIGHT * 4);
+        glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RED, GL_UNSIGNED_BYTE, pixels.data());
+        for (int i = 0; i < 10 && i < pixels.size(); ++i) { // Print first few pixel values
+            printf("%d ", pixels[i]);
+        }
+        printf("\n");
+        //需要注意的是多重采样的帧并不能读取像素以及作为屏幕输出，需要创建一个正常的缓冲帧作为过渡，使用转换glBlitFramebuffer函数来转换到正常的大小
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
         glClear(GL_COLOR_BUFFER_BIT);
         screenShader.use();
         quadVAO.bind();
-        glBindTexture(GL_TEXTURE_2D, texColorBuffer);	// use the color attachment texture as the texture of the quad plane
-        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, screenTexture);	// use the color attachment texture as the texture of the quad plane
+        //glActiveTexture(GL_TEXTURE0);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         
         
