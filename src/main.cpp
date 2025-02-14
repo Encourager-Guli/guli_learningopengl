@@ -248,7 +248,7 @@ int main()
     unsigned int cubelayout[] = { 3,2 };
     VAO cubeVAO(cubeVertices,sizeof(cubeVertices),cubelayout,2);
 
-   /* unsigned int planelayout[] = { 3,2 };
+    unsigned int planelayout[] = { 3,2 };
     VAO planeVAO(planeVertices, sizeof(planeVertices), planelayout, 2);
     
     unsigned int transparentlayout[] = { 3,2 };
@@ -264,7 +264,7 @@ int main()
     VAO mirrorVAO(vertices, sizeof(vertices), mirrorlayout, 2);
 
     unsigned int geolayout[] = { 2,3 };
-    VAO geoVAO(geoV, sizeof(geoV), geolayout, 2);*/
+    VAO geoVAO(geoV, sizeof(geoV), geolayout, 2);
     Shader ourShader("res/shaders/depth_testing.vs", "res/shaders/depth_testing.fs");
     /*Shader screenShader("res/shaders/screen.vs", "res/shaders/screen.fs");
     Shader skyboxShader("res/shaders/skybox.vs", "res/shaders/skybox.fs");
@@ -324,9 +324,10 @@ int main()
 
         ourShader.use();
         ourShader.setMat4("model", model);
+        ourShader.setMat4("tprojection", projection);
         ourShader.setFloat("time", glfwGetTime());
         cubeTexture.Bind(GL_TEXTURE0);
-        cubeVAO.bind();
+        mirrorVAO.bind();
         
         glDrawArrays(GL_TRIANGLES, 0, 36);
         
