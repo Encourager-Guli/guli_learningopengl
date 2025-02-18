@@ -19,6 +19,7 @@ void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadCubemap(vector<std::string> faces);
+void printPixelData(const std::vector<unsigned char>& pixelData, int width, int height);
 // settings
 
 const unsigned int SCR_WIDTH = 800;
@@ -272,8 +273,8 @@ int main()
     Texture cubeTexture("res/textures/cobblestone.png", GL_REPEAT);
     Texture woodTexture("res/textures/birch_planks.png", GL_REPEAT);
     ourShader.use();
-    ourShader.setInt("texture1", 0);
-
+    ourShader.setInt("floorTexture", 0);
+    ourShader.setInt("shadowMap", 1);
     //设置uniform缓冲
     unsigned int uboMatrices;
     glGenBuffers(1, &uboMatrices);
@@ -311,6 +312,9 @@ int main()
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+
+    glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
+
     while (!glfwWindowShouldClose(window))
     {
         
@@ -336,14 +340,11 @@ int main()
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
-
-        // 1. 首选渲染深度贴图
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        glClear(GL_DEPTH_BUFFER_BIT);
+        
+        
         GLfloat near_plane = 1.0f, far_plane = 7.5f;
-        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+        /*glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);*/
+        glm::mat4 lightProjection = glm::perspective(45.0f, (GLfloat)SHADOW_WIDTH / (GLfloat)SHADOW_HEIGHT, near_plane, far_plane);
         glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
@@ -351,37 +352,55 @@ int main()
         simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
         simpleDepthShader.setMat4("model", model);
         
-
+        // 1. 首选渲染深度贴图
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
         instanceVAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 6);
-        model = glm::translate(model, glm::vec3(0, 0.5, 3));
-        simpleDepthShader.setMat4("model", model);
 
+
+        model = glm::translate(model, glm::vec3(0.0, 0.5, 0.0));
+        simpleDepthShader.setMat4("model", model);
         cubeVAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        //std::vector<unsigned char> pixels(1024 * 1024);
+        //glReadPixels(0, 0, 1024, 1024, GL_RED, GL_UNSIGNED_BYTE, pixels.data());
+        //for (int i = 0; i < 10 && i < pixels.size(); ++i) { // Print first few pixel values
+        //    printf("%d ", pixels[i]);
+        //}
+
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        
         // 2. 像往常一样渲染场景，但这次使用深度贴图
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
+
         /*screenShader.use();
         screenShader.setFloat("near_plane", near_plane);
         screenShader.setFloat("far_plane", far_plane);
-        glActiveTexture(GL_TEXTURE0);
+        glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, depthMap);
         quadVAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 6);*/
 
-       
+        
 
         ourShader.use();
-       
+        
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
+
+       /* GLint activeUnit;
+        glGetIntegerv(GL_ACTIVE_TEXTURE, &activeUnit);
+        std::cout << "Current Active Texture Unit: " << (activeUnit - GL_TEXTURE0) << std::endl;*/
+
         ourShader.setVec3("viewPos", camera.Position);
         ourShader.setVec3("lightPos", lightPos);
         ourShader.setInt("blinn", blinn);
+        ourShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
         model = glm::mat4(1.0f);
         ourShader.setMat4("model", model);
         woodTexture.Bind(GL_TEXTURE0);
@@ -389,12 +408,14 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0, 0.5, 0));
+        model = glm::translate(model, glm::vec3(0.0, 0.5, 0.0));
         ourShader.setMat4("model", model);
         cubeTexture.Bind(GL_TEXTURE0);
         cubeVAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        std::cout << (blinn ? "Blinn-Phong" : "Phong") << '\r';
+        
+         printf("\n");
+        /*std::cout << (blinn ? "Blinn-Phong" : "Phong") << '\r';*/
         
         
 
@@ -499,4 +520,13 @@ unsigned int loadCubemap(vector<std::string> faces)
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     return textureID;
+}
+void printPixelData(const std::vector<unsigned char>& pixelData, int width, int height) {
+    const int numChannels = 1; // 假设R格式
+    int step = width * height / 100;
+    for (int i = 0; i < 100; i++)
+    {
+        cout << static_cast<int>( pixelData[step * i]);
+    }
+    
 }

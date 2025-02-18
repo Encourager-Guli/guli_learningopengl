@@ -28,15 +28,15 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 }
 
 void main()
-{
+{   vec3 lightColor = vec3(0.3);
     vec3 color = texture(floorTexture, TexCoords).rgb;
     // ambient
-    vec3 ambient = 0.30 * color;
+    vec3 ambient = 0.3 * lightColor;
     // diffuse
     vec3 lightDir = normalize(lightPos - FragPos);
     vec3 normal = normalize(Normal);
     float diff = max(dot(lightDir, normal), 0.0);
-    vec3 diffuse = diff * color*2;
+    vec3 diffuse = diff * lightColor;
     // specular
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
@@ -51,7 +51,7 @@ void main()
         vec3 reflectDir = reflect(-lightDir, normal);
         spec = pow(max(dot(viewDir, reflectDir), 0.0), 8.0);
     }
-    vec3 specular = vec3(0.3) * spec; // assuming bright white light color
+    vec3 specular = spec * lightColor;// assuming bright white light color
     // º∆À„“ı”∞
     float shadow = ShadowCalculation(FragPosLightSpace);       
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
