@@ -289,7 +289,7 @@ int main()
     ourShader.setUniformBind("Matrices", 0);
     lightShader.setUniformBind("Matrices", 0);
     
-    glm::vec3 lightPos(1.0f, 1.0f, 5.0f);
+    glm::vec3 lightPos(1.0f, 4.0f, 5.0f);
 
     GLuint depthMapFBO;
     glGenFramebuffers(1, &depthMapFBO);
@@ -303,8 +303,11 @@ int main()
         SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
 
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
@@ -327,8 +330,8 @@ int main()
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
-        lightPos.x = 5 * glm::cos(currentFrame);
-        lightPos.z = 5 * glm::sin(currentFrame);
+       /* lightPos.x = 8 * glm::cos(currentFrame);
+        lightPos.z = 8 * glm::sin(currentFrame);*/
         //设置公共变量存储摄像机矩阵
         glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
@@ -342,8 +345,8 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         
-        GLfloat near_plane = 1.0f, far_plane = 7.5f;
-        /*glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);*/
+        GLfloat near_plane = 0.1f, far_plane = 100.0f;
+        //glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
         glm::mat4 lightProjection = glm::perspective(45.0f, (GLfloat)SHADOW_WIDTH / (GLfloat)SHADOW_HEIGHT, near_plane, far_plane);
         glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -351,7 +354,7 @@ int main()
         simpleDepthShader.use();
         simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
         simpleDepthShader.setMat4("model", model);
-        
+        glCullFace(GL_FRONT);
         // 1. 首选渲染深度贴图
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
@@ -364,13 +367,9 @@ int main()
         simpleDepthShader.setMat4("model", model);
         cubeVAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        //std::vector<unsigned char> pixels(1024 * 1024);
-        //glReadPixels(0, 0, 1024, 1024, GL_RED, GL_UNSIGNED_BYTE, pixels.data());
-        //for (int i = 0; i < 10 && i < pixels.size(); ++i) { // Print first few pixel values
-        //    printf("%d ", pixels[i]);
-        //}
+        
 
-
+        glCullFace(GL_BACK);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
         // 2. 像往常一样渲染场景，但这次使用深度贴图
@@ -378,24 +377,25 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
 
-        /*screenShader.use();
-        screenShader.setFloat("near_plane", near_plane);
-        screenShader.setFloat("far_plane", far_plane);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, depthMap);
-        quadVAO.bind();
-        glDrawArrays(GL_TRIANGLES, 0, 6);*/
+        //screenShader.use();
+        //screenShader.setFloat("near_plane", near_plane);
+        //screenShader.setFloat("far_plane", far_plane);
+        //glActiveTexture(GL_TEXTURE2);
+        //glBindTexture(GL_TEXTURE_2D, depthMap);
+        //quadVAO.bind();
+        //glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        
+        //std::vector<unsigned char> pixels(1024 * 1024);
+        //glReadPixels(0, 0, 1024, 1024, GL_RED, GL_UNSIGNED_BYTE, pixels.data());
+        //for (int i = 0; i < 10 && i < pixels.size(); ++i) { // Print first few pixel values
+        //    printf("%f  ", pixels[i]/256.0);
+        //}
 
         ourShader.use();
         
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, depthMap);
 
-       /* GLint activeUnit;
-        glGetIntegerv(GL_ACTIVE_TEXTURE, &activeUnit);
-        std::cout << "Current Active Texture Unit: " << (activeUnit - GL_TEXTURE0) << std::endl;*/
 
         ourShader.setVec3("viewPos", camera.Position);
         ourShader.setVec3("lightPos", lightPos);
@@ -414,11 +414,12 @@ int main()
         cubeVAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 36);
         
-         printf("\n");
-        /*std::cout << (blinn ? "Blinn-Phong" : "Phong") << '\r';*/
-        
-        
-
+        model = glm::mat4(1.0);
+        model = glm::translate(model, lightPos);
+        lightShader.use();
+        lightShader.setMat4("model", model);
+        skyboxVAO.bind();
+        glDrawArrays(GL_TRIANGLES, 0, 36);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

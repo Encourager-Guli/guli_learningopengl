@@ -16,10 +16,9 @@ layout (std140) uniform Matrices
 uniform mat4 lightSpaceMatrix;
 void main()
 {
-    gl_Position = projection * view * model * vec4(aPos, 1.0f);
-    //FragPos=aPos;
-    FragPos = vec3(model * vec4(aPos, 1.0));
-    Normal = mat3(transpose(inverse(model))) * aNormal; 
-    TexCoords=aTexCoords;
-    FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
+   FragPos = vec3(model * vec4(aPos, 1.0));
+   Normal = transpose(inverse(mat3(model))) * aNormal;
+   TexCoords = aTexCoords;
+   FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
+   gl_Position = projection * view * model * vec4(aPos, 1.0);
 }
