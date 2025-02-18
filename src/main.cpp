@@ -29,6 +29,8 @@ float lastY = SCR_HEIGHT / 2.0f;
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 bool firstMouse = true;
+bool blinn = false;
+bool blinnKeyPressed = false;
 int main()
 {   
     
@@ -154,14 +156,14 @@ int main()
          -0.5f,  0.5f,  0.5f,  0.0f, 0.0f  // bottom-left        
     };
     float planeVertices[] = {
-        // positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
-         5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
-        -5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
-        -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+        // positions            // normals         // texcoords
+         100.0f, -0.5f,  100.0f,  0.0f, 1.0f, 0.0f,  100.0f,  0.0f,
+        -100.0f, -0.5f,  100.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+        -100.0f, -0.5f, -100.0f,  0.0f, 1.0f, 0.0f,   0.0f, 100.0f,
 
-         5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
-        -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
-         5.0f, -0.5f, -5.0f,  2.0f, 2.0f
+         100.0f, -0.5f,  100.0f,  0.0f, 1.0f, 0.0f,  100.0f,  0.0f,
+        -100.0f, -0.5f, -100.0f,  0.0f, 1.0f, 0.0f,   0.0f, 100.0f,
+         100.0f, -0.5f, -100.0f,  0.0f, 1.0f, 0.0f,  100.0f, 100.0f
     };
     float transparentVertices[] = {
         // positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
@@ -198,12 +200,7 @@ int main()
      0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // 右下
     -0.5f, -0.5f, 1.0f, 1.0f, 0.0f  // 左下 
     };
-    vector<glm::vec3> vegetation;
-    vegetation.push_back(glm::vec3(-1.5f, 0.0f, -0.48f));
-    vegetation.push_back(glm::vec3(1.5f, 0.0f, 0.51f));
-    vegetation.push_back(glm::vec3(0.0f, 0.0f, 0.7f));
-    vegetation.push_back(glm::vec3(-0.3f, 0.0f, -2.3f));
-    vegetation.push_back(glm::vec3(0.5f, 0.0f, -0.6f));
+    
     vector<string> textures_faces;
     textures_faces.push_back("res/textures/skybox/right.jpg");
     textures_faces.push_back("res/textures/skybox/left.jpg");
@@ -277,14 +274,16 @@ int main()
     unsigned int geolayout[] = { 2,3 };
     VAO geoVAO(geoV, sizeof(geoV), geolayout, 2);
 
-    unsigned int instancelayout[] = { 2,3 };
-    VAO instanceVAO(quadVertices2, sizeof(quadVertices2), instancelayout, 2);
+    unsigned int instancelayout[] = { 3,3,2 };
+    VAO instanceVAO(planeVertices, sizeof(planeVertices), instancelayout, 3);
 
     Shader ourShader("res/shaders/depth_testing.vs", "res/shaders/depth_testing.fs");
+    Shader lightShader("res/shaders/lightshader.vs", "res/shaders/lightshader.fs");
     /*Shader screenShader("res/shaders/screen.vs", "res/shaders/screen.fs");
     Shader skyboxShader("res/shaders/skybox.vs", "res/shaders/skybox.fs");
     Shader mirrorShader("res/shaders/mirror.vs", "res/shaders/mirror.fs");*/
     Texture cubeTexture("res/textures/cobblestone.png", GL_REPEAT);
+    Texture woodTexture("res/textures/birch_planks.png", GL_REPEAT);
     /*Texture floorTexture("res/textures/bricks.png", GL_REPEAT);
     Texture mywindow("res/textures/blending_transparent_window.png", GL_REPEAT);
     unsigned int cubemapTexture = loadCubemap(textures_faces);
@@ -308,6 +307,7 @@ int main()
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
 
     ourShader.setUniformBind("Matrices", 0);
+    lightShader.setUniformBind("Matrices", 0);
     /*mirrorShader.setUniformBind("Matrices", 0);*/
     glm::vec2 translations[100];
     int index = 0;
@@ -322,18 +322,24 @@ int main()
             translations[index++] = translation;
         }
     }
-    instanceVAO.bind();
+    instanceVAO.bind();//附加绑定上实例化信息
     unsigned int instanceVBO;
     glGenBuffers(1, &instanceVBO);
     glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &translations[0], GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(3);
     glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glVertexAttribDivisor(2, 1);
+    glVertexAttribDivisor(3, 1);
     glBindVertexArray(0);
+
+
+    glm::vec3 lightPos(1.0f, 1.0f, 5.0f);
+
+
+
     while (!glfwWindowShouldClose(window))
     {
         
@@ -349,6 +355,7 @@ int main()
         glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
         // ... 设置观察和投影矩阵
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        /*glm::mat4 projection=glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);*/
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
 
@@ -362,12 +369,21 @@ int main()
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         ourShader.use();
-        
+        ourShader.setVec3("viewPos", camera.Position);
+        ourShader.setVec3("lightPos", lightPos);
+        ourShader.setInt("blinn", blinn);
+        ourShader.setMat4("model", model);
+        woodTexture.Bind(GL_TEXTURE0);
         instanceVAO.bind();
-        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 1);
+        std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
         
-        
-
+        lightShader.use();
+        model = glm::translate(model, lightPos);
+        model = glm::scale(model,glm::vec3(0.5, 0.5, 0.5));
+        lightShader.setMat4("model", model);
+        skyboxVAO.bind();
+        glDrawArrays(GL_TRIANGLES, 0, 36);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -395,7 +411,15 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
-
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !blinnKeyPressed)
+    {
+        blinn = !blinn;
+        blinnKeyPressed = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE)
+    {
+        blinnKeyPressed = false;
+    }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
