@@ -102,6 +102,9 @@
     <None Include="res\shaders\skybox.fs" />
     <None Include="res\shaders\mirror.vs" />
     <None Include="res\shaders\mirror.fs" />
+    <None Include="res\shaders\geo.gs" />
+    <None Include="res\shaders\simpleDepthShader.vs" />
+    <None Include="res\shaders\simpleDepthShader.fs" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\container.jpg">

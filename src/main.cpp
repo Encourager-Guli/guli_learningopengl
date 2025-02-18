@@ -69,47 +69,48 @@ int main()
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float vertices[] = {
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        // Positions          Normals           TexCoords
+         -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+          1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+          1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+          1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+         -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+         -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+         -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+          1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+          1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+          1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+         -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+         -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+         -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+         -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+         -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+         -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+         -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+         -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
 
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+          1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+          1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+          1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+          1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+          1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+          1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
 
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+          1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+          1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+          1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+         -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+         -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
 
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+         -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+          1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+          1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+          1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+         -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+         -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f
     };
     float cubeVertices[] = {
         // Back face
@@ -253,50 +254,27 @@ int main()
          1.0f, -1.0f,  1.0f
     };
 
-    unsigned int cubelayout[] = { 3,2 };
-    VAO cubeVAO(cubeVertices,sizeof(cubeVertices),cubelayout,2);
-
-    unsigned int planelayout[] = { 3,2 };
-    VAO planeVAO(planeVertices, sizeof(planeVertices), planelayout, 2);
-    
-    unsigned int transparentlayout[] = { 3,2 };
-    VAO transparentVAO(transparentVertices, sizeof(transparentVertices), transparentlayout, 2);
-    
-    unsigned int quadlayout[] = { 2,2 };
-    VAO quadVAO(quadVertices, sizeof(quadVertices), quadlayout, 2);
+    unsigned int cubelayout[] = { 3,3,2 };
+    VAO cubeVAO(vertices,sizeof(vertices),cubelayout,3);
 
     unsigned int skyboxlayout[] = { 3 };
     VAO skyboxVAO(skyboxVertices, sizeof(skyboxVertices), skyboxlayout, 1);
 
-    unsigned int mirrorlayout[] = { 3,3 };
-    VAO mirrorVAO(vertices, sizeof(vertices), mirrorlayout, 2);
-
-    unsigned int geolayout[] = { 2,3 };
-    VAO geoVAO(geoV, sizeof(geoV), geolayout, 2);
-
     unsigned int instancelayout[] = { 3,3,2 };
     VAO instanceVAO(planeVertices, sizeof(planeVertices), instancelayout, 3);
 
+    unsigned int quadlayout[] = { 2,2 };
+    VAO quadVAO(quadVertices, sizeof(quadVertices), quadlayout, 2);
+    Shader simpleDepthShader("res/shaders/simpleDepthShader.vs", "res/shaders/simpleDepthShader.fs");
     Shader ourShader("res/shaders/depth_testing.vs", "res/shaders/depth_testing.fs");
     Shader lightShader("res/shaders/lightshader.vs", "res/shaders/lightshader.fs");
-    /*Shader screenShader("res/shaders/screen.vs", "res/shaders/screen.fs");
-    Shader skyboxShader("res/shaders/skybox.vs", "res/shaders/skybox.fs");
-    Shader mirrorShader("res/shaders/mirror.vs", "res/shaders/mirror.fs");*/
+    Shader screenShader("res/shaders/screen.vs", "res/shaders/screen.fs");
     Texture cubeTexture("res/textures/cobblestone.png", GL_REPEAT);
     Texture woodTexture("res/textures/birch_planks.png", GL_REPEAT);
-    /*Texture floorTexture("res/textures/bricks.png", GL_REPEAT);
-    Texture mywindow("res/textures/blending_transparent_window.png", GL_REPEAT);
-    unsigned int cubemapTexture = loadCubemap(textures_faces);
-    screenShader.attach_Geo("res/shaders/geo.gs");*/
     ourShader.use();
     ourShader.setInt("texture1", 0);
-    /*screenShader.use();
-    screenShader.setInt("screenTexture", 0);
-    skyboxShader.use();
-    skyboxShader.setInt("skybox", 0);
-    mirrorShader.use();
-    mirrorShader.setInt("skybox", 0);*/
-    
+
+    //设置uniform缓冲
     unsigned int uboMatrices;
     glGenBuffers(1, &uboMatrices);
 
@@ -306,39 +284,32 @@ int main()
 
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
 
+
     ourShader.setUniformBind("Matrices", 0);
     lightShader.setUniformBind("Matrices", 0);
-    /*mirrorShader.setUniformBind("Matrices", 0);*/
-    glm::vec2 translations[100];
-    int index = 0;
-    float offset = 0.1f;
-    for (int y = -10; y < 10; y += 2)
-    {
-        for (int x = -10; x < 10; x += 2)
-        {
-            glm::vec2 translation;
-            translation.x = (float)x / 10.0f + offset;
-            translation.y = (float)y / 10.0f + offset;
-            translations[index++] = translation;
-        }
-    }
-    instanceVAO.bind();//附加绑定上实例化信息
-    unsigned int instanceVBO;
-    glGenBuffers(1, &instanceVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &translations[0], GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glEnableVertexAttribArray(3);
-    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glVertexAttribDivisor(3, 1);
-    glBindVertexArray(0);
-
-
+    
     glm::vec3 lightPos(1.0f, 1.0f, 5.0f);
 
+    GLuint depthMapFBO;
+    glGenFramebuffers(1, &depthMapFBO);
 
+    const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+
+    GLuint depthMap;
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+        SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -348,17 +319,12 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         processInput(window);
-
-
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
         // ... 设置观察和投影矩阵
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        /*glm::mat4 projection=glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);*/
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
-
+        lightPos.x = 5 * glm::cos(currentFrame);
+        lightPos.z = 5 * glm::sin(currentFrame);
         //设置公共变量存储摄像机矩阵
         glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
@@ -368,22 +334,70 @@ int main()
         glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
+
+        // 1. 首选渲染深度贴图
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        GLfloat near_plane = 1.0f, far_plane = 7.5f;
+        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+        glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+        simpleDepthShader.use();
+        simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        simpleDepthShader.setMat4("model", model);
+        
+
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        instanceVAO.bind();
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        model = glm::translate(model, glm::vec3(0, 0.5, 3));
+        simpleDepthShader.setMat4("model", model);
+
+        cubeVAO.bind();
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // 2. 像往常一样渲染场景，但这次使用深度贴图
+        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        /*screenShader.use();
+        screenShader.setFloat("near_plane", near_plane);
+        screenShader.setFloat("far_plane", far_plane);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
+        quadVAO.bind();
+        glDrawArrays(GL_TRIANGLES, 0, 6);*/
+
+       
+
         ourShader.use();
+       
         ourShader.setVec3("viewPos", camera.Position);
         ourShader.setVec3("lightPos", lightPos);
         ourShader.setInt("blinn", blinn);
+        model = glm::mat4(1.0f);
         ourShader.setMat4("model", model);
         woodTexture.Bind(GL_TEXTURE0);
         instanceVAO.bind();
-        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 1);
-        std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
-        
-        lightShader.use();
-        model = glm::translate(model, lightPos);
-        model = glm::scale(model,glm::vec3(0.5, 0.5, 0.5));
-        lightShader.setMat4("model", model);
-        skyboxVAO.bind();
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0, 0.5, 0));
+        ourShader.setMat4("model", model);
+        cubeTexture.Bind(GL_TEXTURE0);
+        cubeVAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        std::cout << (blinn ? "Blinn-Phong" : "Phong") << '\r';
+        
+        
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
