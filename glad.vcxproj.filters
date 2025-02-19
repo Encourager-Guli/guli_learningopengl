@@ -105,6 +105,7 @@
     <None Include="res\shaders\geo.gs" />
     <None Include="res\shaders\simpleDepthShader.vs" />
     <None Include="res\shaders\simpleDepthShader.fs" />
+    <None Include="res\shaders\shadow.gs" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\container.jpg">
