@@ -1,9 +1,12 @@
 #version 330 core
-in vec3 FragPos;
-in vec3 Normal;
 in vec2 TexCoords;
+in vec3 FragPos;
+in vec3 testdata;
+in vec3 TangentLightPos;
+in vec3 TangentViewPos;
+in vec3 TangentFragPos;
 out vec4 FragColor;
-
+uniform sampler2D normalMap;
 uniform sampler2D floorTexture;
 uniform samplerCube depthMap;
 uniform vec3 lightPos;
@@ -20,7 +23,7 @@ float ShadowCalculation(vec3 fragPos)
     float closestDepth = texture(depthMap, fragToLight).r;
     closestDepth *= far_plane;
     float currentDepth = length(fragToLight);
-    float bias = 0.05; 
+    float bias = 0.2; 
     float shadow = currentDepth -  bias > closestDepth ? 1.0 : 0.0;
 
     return shadow;
@@ -40,13 +43,13 @@ void main()
     // ambient
     vec3 ambient = 0.3 * lightColor;
     // diffuse
-    vec3 lightDir = normalize(lightPos - FragPos);
-    vec3 normal = normalize(Normal);
-    
+    vec3 normal = texture(normalMap, TexCoords).rgb;
+    normal = normalize(normal * 2.0 - 1.0);
+    vec3 lightDir = normalize(TangentLightPos - TangentFragPos);
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = diff * lightColor;
     // specular
-    vec3 viewDir = normalize(viewPos - FragPos);
+    vec3 viewDir = normalize(TangentViewPos -TangentFragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = 0.0;
     if(blinn)
@@ -65,4 +68,6 @@ void main()
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
     //FragColor = vec4(vec3(showdepth(FragPos) / far_plane), 1.0);
     FragColor = vec4(lighting, 1.0f);
+    //FragColor = vec4(TBN[0], 1.0f);
+
 }

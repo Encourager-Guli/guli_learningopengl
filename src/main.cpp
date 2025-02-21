@@ -69,6 +69,7 @@ int main()
     
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
+    
     float vertices[] = {
         // Positions          Normals           TexCoords
          -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
@@ -257,13 +258,13 @@ int main()
 
     unsigned int cubelayout[] = { 3,3,2 };
     VAO cubeVAO(vertices,sizeof(vertices),cubelayout,3);
-
+    cubeVAO.add_TBN();
     unsigned int skyboxlayout[] = { 3 };
     VAO skyboxVAO(skyboxVertices, sizeof(skyboxVertices), skyboxlayout, 1);
 
     unsigned int instancelayout[] = { 3,3,2 };
     VAO instanceVAO(planeVertices, sizeof(planeVertices), instancelayout, 3);
-
+    instanceVAO.add_TBN();
     unsigned int quadlayout[] = { 2,2 };
     VAO quadVAO(quadVertices, sizeof(quadVertices), quadlayout, 2);
     Shader simpleDepthShader("res/shaders/simpleDepthShader.vs", "res/shaders/simpleDepthShader.fs");
@@ -272,9 +273,13 @@ int main()
     Shader screenShader("res/shaders/screen.vs", "res/shaders/screen.fs");
     Texture cubeTexture("res/textures/cobblestone.png", GL_REPEAT);
     Texture woodTexture("res/textures/birch_planks.png", GL_REPEAT);
+    Texture cube_n("res/textures/cobblestone_n.png",GL_REPEAT);
+    Texture wood_n("res/textures/birch_planks_n.png", GL_REPEAT);
+
     ourShader.use();
     ourShader.setInt("floorTexture", 0);
     ourShader.setInt("depthMap", 1);
+    ourShader.setInt("normalMap", 2);
     simpleDepthShader.attach_Geo("res/shaders/shadow.gs");
     //…Ë÷√uniformª∫≥Â
     unsigned int uboMatrices;
@@ -367,17 +372,13 @@ int main()
             glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
 
         
-        //glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-        //glm::mat4 lightProjection = glm::perspective(45.0f, (GLfloat)SHADOW_WIDTH / (GLfloat)SHADOW_HEIGHT, near_plane, far_plane);
-        //glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
+        
         simpleDepthShader.use();
 
         for (int i = 0; i < 6; i++)
         {
             simpleDepthShader.setMat4("shadowMatrices[" + to_string(i) + "]", shadowTransforms[i]);
         }
-        //simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
         simpleDepthShader.setMat4("model", model);
         simpleDepthShader.setVec3("lightPos", lightPos);
         simpleDepthShader.setFloat("far_plane", far);
@@ -425,7 +426,7 @@ int main()
         ourShader.setFloat("far_plane", far);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
-
+        
 
         ourShader.setVec3("viewPos", camera.Position);
         ourShader.setVec3("lightPos", lightPos);
@@ -434,6 +435,7 @@ int main()
         model = glm::mat4(1.0f);
         ourShader.setMat4("model", model);
         woodTexture.Bind(GL_TEXTURE0);
+        wood_n.Bind(GL_TEXTURE2);
         instanceVAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -441,6 +443,7 @@ int main()
         model = glm::translate(model, glm::vec3(0.0, 0.5, 0.0));
         ourShader.setMat4("model", model);
         cubeTexture.Bind(GL_TEXTURE0);
+        cube_n.Bind(GL_TEXTURE2);
         cubeVAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 36);
         
@@ -452,6 +455,7 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glfwSwapBuffers(window);
         glfwPollEvents();
+        
     }
 
     
