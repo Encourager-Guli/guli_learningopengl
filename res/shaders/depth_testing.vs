@@ -11,7 +11,6 @@ out vec2 TexCoords;
 out vec3 TangentLightPos;
 out vec3 TangentViewPos ;
 out vec3 TangentFragPos ;
-out vec3 testdata;
 out vec3 FragPos;
 uniform mat4 model;
 

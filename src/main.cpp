@@ -272,14 +272,20 @@ int main()
     Shader lightShader("res/shaders/lightshader.vs", "res/shaders/lightshader.fs");
     Shader screenShader("res/shaders/screen.vs", "res/shaders/screen.fs");
     Texture cubeTexture("res/textures/cobblestone.png", GL_REPEAT);
-    Texture woodTexture("res/textures/birch_planks.png", GL_REPEAT);
     Texture cube_n("res/textures/cobblestone_n.png",GL_REPEAT);
+    Texture cube_s("res/textures/cobblestone_s.png", GL_REPEAT);
+    Texture woodTexture("res/textures/birch_planks.png", GL_REPEAT);
     Texture wood_n("res/textures/birch_planks_n.png", GL_REPEAT);
+    Texture wood_s("res/textures/birch_planks_s.png", GL_REPEAT);
+    Texture smooth_stone("res/textures/smooth_stone.png", GL_REPEAT);
+    Texture smooth_stone_n("res/textures/smooth_stone_n.png", GL_REPEAT);
+    Texture smooth_stone_s("res/textures/smooth_stone_n.png", GL_REPEAT);
 
     ourShader.use();
     ourShader.setInt("floorTexture", 0);
     ourShader.setInt("depthMap", 1);
     ourShader.setInt("normalMap", 2);
+    ourShader.setInt("specularMap", 3);
     simpleDepthShader.attach_Geo("res/shaders/shadow.gs");
     //设置uniform缓冲
     unsigned int uboMatrices;
@@ -337,8 +343,8 @@ int main()
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
-       /* lightPos.x = 8 * glm::cos(currentFrame);
-        lightPos.z = 8 * glm::sin(currentFrame);*/
+        lightPos.x = 8 * glm::cos(currentFrame);
+        lightPos.z = 8 * glm::sin(currentFrame);
         //设置公共变量存储摄像机矩阵
         glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
@@ -398,8 +404,9 @@ int main()
         simpleDepthShader.setMat4("model", model);
         cubeVAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        
-
+        model = glm::translate(model, glm::vec3(4.0, 0.0, 0.0));
+        simpleDepthShader.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
         //glCullFace(GL_BACK);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
@@ -408,20 +415,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
 
-        //screenShader.use();
-        //screenShader.setFloat("near_plane", near_plane);
-        //screenShader.setFloat("far_plane", far_plane);
-        //glActiveTexture(GL_TEXTURE2);
-        //glBindTexture(GL_TEXTURE_2D, depthMap);
-        //quadVAO.bind();
-        //glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        //std::vector<unsigned char> pixels(1024 * 1024);
-        //glReadPixels(0, 0, 1024, 1024, GL_RED, GL_UNSIGNED_BYTE, pixels.data());
-        //for (int i = 0; i < 10 && i < pixels.size(); ++i) { // Print first few pixel values
-        //    printf("%f  ", pixels[i]/256.0);
-        //}
-
+        
         ourShader.use();
         ourShader.setFloat("far_plane", far);
         glActiveTexture(GL_TEXTURE1);
@@ -436,6 +430,7 @@ int main()
         ourShader.setMat4("model", model);
         woodTexture.Bind(GL_TEXTURE0);
         wood_n.Bind(GL_TEXTURE2);
+        wood_s.Bind(GL_TEXTURE3);
         instanceVAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -444,9 +439,17 @@ int main()
         ourShader.setMat4("model", model);
         cubeTexture.Bind(GL_TEXTURE0);
         cube_n.Bind(GL_TEXTURE2);
+        cube_s.Bind(GL_TEXTURE3);
         cubeVAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        
+        model = glm::translate(model, glm::vec3(4.0, 0.0, 0.0));
+        ourShader.setMat4("model", model);
+        smooth_stone.Bind(GL_TEXTURE0);
+        smooth_stone_n.Bind(GL_TEXTURE2);
+        smooth_stone_s.Bind(GL_TEXTURE3);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
         model = glm::mat4(1.0);
         model = glm::translate(model, lightPos);
         lightShader.use();
