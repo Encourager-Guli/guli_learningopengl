@@ -13,6 +13,7 @@
 #include<map>
 #include"VAO.h"
 #include <string>
+#include "Model.h"
 using namespace std;
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -330,7 +331,8 @@ int main()
 
 
     glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
-
+    char obj_path[] = "res/models/woodball.obj";
+    Model ball(obj_path);
     while (!glfwWindowShouldClose(window))
     {
         
@@ -343,8 +345,8 @@ int main()
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
-        lightPos.x = 8 * glm::cos(currentFrame);
-        lightPos.z = 8 * glm::sin(currentFrame);
+        lightPos.x = 4 * glm::cos(currentFrame);
+        lightPos.z = 4 * glm::sin(currentFrame);
         //设置公共变量存储摄像机矩阵
         glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
@@ -363,65 +365,16 @@ int main()
         GLfloat far = 25.0f;
         glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, far);
 
-        std::vector<glm::mat4> shadowTransforms;
-        shadowTransforms.push_back(shadowProj*
-            glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-        shadowTransforms.push_back(shadowProj*
-            glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-        shadowTransforms.push_back(shadowProj*
-            glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-        shadowTransforms.push_back(shadowProj*
-            glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-        shadowTransforms.push_back(shadowProj*
-            glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-        shadowTransforms.push_back(shadowProj*
-            glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
-
         
+       
         
-        simpleDepthShader.use();
-
-        for (int i = 0; i < 6; i++)
-        {
-            simpleDepthShader.setMat4("shadowMatrices[" + to_string(i) + "]", shadowTransforms[i]);
-        }
-        simpleDepthShader.setMat4("model", model);
-        simpleDepthShader.setVec3("lightPos", lightPos);
-        simpleDepthShader.setFloat("far_plane", far);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
-
-        //glCullFace(GL_FRONT);
-        // 1. 首选渲染深度贴图
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        glClear(GL_DEPTH_BUFFER_BIT);
-        instanceVAO.bind();
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-
-        model = glm::translate(model, glm::vec3(0.0, 0.5, 0.0));
-        simpleDepthShader.setMat4("model", model);
-        cubeVAO.bind();
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        model = glm::translate(model, glm::vec3(4.0, 0.0, 0.0));
-        simpleDepthShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        //glCullFace(GL_BACK);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        
-        // 2. 像往常一样渲染场景，但这次使用深度贴图
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
 
         
         ourShader.use();
-        ourShader.setFloat("far_plane", far);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
         
-
         ourShader.setVec3("viewPos", camera.Position);
         ourShader.setVec3("lightPos", lightPos);
         ourShader.setInt("blinn", blinn);
@@ -434,20 +387,10 @@ int main()
         instanceVAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0, 0.5, 0.0));
-        ourShader.setMat4("model", model);
-        cubeTexture.Bind(GL_TEXTURE0);
-        cube_n.Bind(GL_TEXTURE2);
-        cube_s.Bind(GL_TEXTURE3);
-        cubeVAO.bind();
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        model = glm::translate(model, glm::vec3(4.0, 0.0, 0.0));
-        ourShader.setMat4("model", model);
         smooth_stone.Bind(GL_TEXTURE0);
         smooth_stone_n.Bind(GL_TEXTURE2);
         smooth_stone_s.Bind(GL_TEXTURE3);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        ball.Draw();
 
 
         model = glm::mat4(1.0);
