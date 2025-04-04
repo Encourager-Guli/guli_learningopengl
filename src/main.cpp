@@ -80,7 +80,7 @@ int main()
     Shader boxShader("res/shaders/HDR_to_box.vs", "res/shaders/HDR_to_box.fs");
 
     //辐照度着色器，使用立方体着色器生成的立方体贴图进一步生成辐照度贴图
-
+    Shader irradianceShader("res/shaders/irradiance.vs", "res/shaders/irradiance.fs");
 
     //天空盒着色器，接收生成的立方体贴图作为天空盒
     Shader skyboxShader("res/shaders/skybox.vs", "res/shaders/skybox.fs");
@@ -95,7 +95,7 @@ int main()
     ourShader.setInt("albedoMap", 0);
     ourShader.setInt("normalMap", 1);
     ourShader.setInt("armMap", 2);
-
+    ourShader.setInt("irradianceMap", 3);
     unsigned int cube_layout[] = { 3 };
     VAO cubeVAO(cube, sizeof(cube), cube_layout, 1);
     
@@ -130,7 +130,7 @@ int main()
 
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
     glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 1024, 1024);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
 
     //立方体贴图
@@ -139,7 +139,7 @@ int main()
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
     for (unsigned int i = 0; i < 6; ++i)
     {
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 512, 512, 0, GL_RGB, GL_FLOAT, nullptr);
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 1024, 1024, 0, GL_RGB, GL_FLOAT, nullptr);
     }
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -161,7 +161,7 @@ int main()
     boxShader.setInt("equirectangularMap", 0);
     boxShader.setMat4("projection", captureProjection);
     skybox.Bind(GL_TEXTURE0);
-    glViewport(0, 0, 512, 512);
+    glViewport(0, 0, 1024, 1024);
 
     //每一个面渲染一次
     for (unsigned int i = 0; i < 6; ++i)
@@ -173,6 +173,44 @@ int main()
         cubeVAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
+
+    //接下来生成辐照图
+
+    unsigned int irradianceMap;
+    glGenTextures(1, &irradianceMap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 32, 32, 0, GL_RGB, GL_FLOAT, nullptr);
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
+
+    irradianceShader.use();
+    irradianceShader.setInt("environmentMap", 0);
+    irradianceShader.setMat4("projection", captureProjection);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+
+    glViewport(0, 0, 32, 32);
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        irradianceShader.setMat4("view", captureViews[i]);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceMap, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        cubeVAO.bind();
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    }
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //恢复到主缓冲
 
@@ -215,8 +253,11 @@ int main()
         albedo.Bind(GL_TEXTURE0);
         normal.Bind(GL_TEXTURE1);
         arm.Bind(GL_TEXTURE2);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
         ball.Draw();
 
+        glDepthFunc(GL_LEQUAL);
         glDepthMask(GL_FALSE);
         skyboxShader.use();
         cubeVAO.bind();
