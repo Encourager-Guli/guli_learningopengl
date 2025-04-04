@@ -164,8 +164,10 @@
     <ClInclude Include="src\stb_image.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\VAO.h" />
+    <ClInclude Include="src\Vertex.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assimp-vc143-mtd.dll" />
     <None Include="Dependencies\GLEW\doc\advanced.html" />
     <None Include="Dependencies\GLEW\doc\basic.html" />
     <None Include="Dependencies\GLEW\doc\build.html" />
@@ -181,10 +183,16 @@
     <None Include="res\shaders\depth_testing.fs" />
     <None Include="res\shaders\depth_testing.vs" />
     <None Include="res\shaders\geo.gs" />
+    <None Include="res\shaders\HDR_to_box.fs" />
+    <None Include="res\shaders\HDR_to_box.vs" />
+    <None Include="res\shaders\irradiance.fs" />
+    <None Include="res\shaders\irradiance.vs" />
     <None Include="res\shaders\lightshader.fs" />
     <None Include="res\shaders\lightshader.vs" />
     <None Include="res\shaders\mirror.fs" />
     <None Include="res\shaders\mirror.vs" />
+    <None Include="res\shaders\PBR.fs" />
+    <None Include="res\shaders\PBR.vs" />
     <None Include="res\shaders\screen.fs" />
     <None Include="res\shaders\screen.vs" />
     <None Include="res\shaders\shaderSingleColor.fs" />

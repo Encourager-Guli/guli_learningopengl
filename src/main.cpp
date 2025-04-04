@@ -14,6 +14,7 @@
 #include"VAO.h"
 #include <string>
 #include "Model.h"
+#include "Vertex.h"
 using namespace std;
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -33,6 +34,7 @@ float lastFrame = 0.0f; // 上一帧的时间
 bool firstMouse = true;
 bool blinn = false;
 bool blinnKeyPressed = false;
+
 int main()
 {   
     
@@ -71,223 +73,32 @@ int main()
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     
-    float vertices[] = {
-        // Positions          Normals           TexCoords
-         -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-          1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-          1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-          1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-         -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-         -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+    //主渲染着色器
+    Shader ourShader("res/shaders/PBR.vs", "res/shaders/PBR.fs");
 
-         -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-          1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-          1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-          1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-         -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-         -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+    //立方体着色器，将hdr贴图绘制到立方体贴图上
+    Shader boxShader("res/shaders/HDR_to_box.vs", "res/shaders/HDR_to_box.fs");
 
-         -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-         -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-         -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-         -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-         -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-         -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+    //辐照度着色器，使用立方体着色器生成的立方体贴图进一步生成辐照度贴图
 
-          1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-          1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-          1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-          1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-          1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-          1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
 
-         -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-          1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-          1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-          1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-         -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-         -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+    //天空盒着色器，接收生成的立方体贴图作为天空盒
+    Shader skyboxShader("res/shaders/skybox.vs", "res/shaders/skybox.fs");
 
-         -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-          1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-          1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-          1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-         -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-         -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f
-    };
-    float cubeVertices[] = {
-        // Back face
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // Bottom-left
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // bottom-right         
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // bottom-left
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
-        // Front face
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // top-left
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
-        // Left face
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-left
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
-        // Right face
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right         
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left     
-         // Bottom face
-         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
-          0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // top-left
-          0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
-          0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
-         -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
-         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
-         // Top face
-         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
-          0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-          0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right     
-          0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
-         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f  // bottom-left        
-    };
-    float planeVertices[] = {
-        // positions            // normals         // texcoords
-         100.0f, -0.5f,  100.0f,  0.0f, 1.0f, 0.0f,  100.0f,  0.0f,
-        -100.0f, -0.5f,  100.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-        -100.0f, -0.5f, -100.0f,  0.0f, 1.0f, 0.0f,   0.0f, 100.0f,
+    Texture albedo("res/textures/mental/rusty_metal_04_diff_2k.png",GL_REPEAT,true);
+    Texture normal("res/textures/mental/rusty_metal_04_nor_gl_2k.png", GL_REPEAT,true);
+    Texture arm("res/textures/mental/rusty_metal_04_arm_2k.png", GL_REPEAT, true);
+    Texture skybox("res/textures/mirrored_hall_1k.hdr", GL_CLAMP_TO_EDGE, true, true);
 
-         100.0f, -0.5f,  100.0f,  0.0f, 1.0f, 0.0f,  100.0f,  0.0f,
-        -100.0f, -0.5f, -100.0f,  0.0f, 1.0f, 0.0f,   0.0f, 100.0f,
-         100.0f, -0.5f, -100.0f,  0.0f, 1.0f, 0.0f,  100.0f, 100.0f
-    };
-    float transparentVertices[] = {
-        // positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
-        0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
-        0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
-        1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
-
-        0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
-        1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
-        1.0f,  0.5f,  0.0f,  1.0f,  0.0f
-    };
-    float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-        // positions   // texCoords
-        -1.0f,  1.0f,  0.0f, 1.0f,
-        -1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-
-        -1.0f,  1.0f,  0.0f, 1.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f,  1.0f, 1.0f
-    };
-    float quadVertices2[] = {
-        // 位置          // 颜色
-        -0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
-         0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
-        -0.05f, -0.05f,  0.0f, 0.0f, 1.0f,
-
-        -0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
-         0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
-         0.05f,  0.05f,  0.0f, 1.0f, 1.0f
-    };
-    float geoV[] = { -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // 左上
-     0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // 右上
-     0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // 右下
-    -0.5f, -0.5f, 1.0f, 1.0f, 0.0f  // 左下 
-    };
-    
-    vector<string> textures_faces;
-    textures_faces.push_back("res/textures/skybox/right.jpg");
-    textures_faces.push_back("res/textures/skybox/left.jpg");
-    textures_faces.push_back("res/textures/skybox/top.jpg");
-    textures_faces.push_back("res/textures/skybox/bottom.jpg");
-    textures_faces.push_back("res/textures/skybox/front.jpg");
-    textures_faces.push_back("res/textures/skybox/back.jpg");
-    float skyboxVertices[] = {
-        // positions          
-        -1.0f,  1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-
-        -1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-
-        -1.0f, -1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-
-        -1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f, -1.0f,
-
-        -1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f
-    };
-
-    unsigned int cubelayout[] = { 3,3,2 };
-    VAO cubeVAO(vertices,sizeof(vertices),cubelayout,3);
-    cubeVAO.add_TBN();
-    unsigned int skyboxlayout[] = { 3 };
-    VAO skyboxVAO(skyboxVertices, sizeof(skyboxVertices), skyboxlayout, 1);
-
-    unsigned int instancelayout[] = { 3,3,2 };
-    VAO instanceVAO(planeVertices, sizeof(planeVertices), instancelayout, 3);
-    instanceVAO.add_TBN();
-    unsigned int quadlayout[] = { 2,2 };
-    VAO quadVAO(quadVertices, sizeof(quadVertices), quadlayout, 2);
-    Shader simpleDepthShader("res/shaders/simpleDepthShader.vs", "res/shaders/simpleDepthShader.fs");
-    Shader ourShader("res/shaders/depth_testing.vs", "res/shaders/depth_testing.fs");
-    Shader lightShader("res/shaders/lightshader.vs", "res/shaders/lightshader.fs");
-    Shader screenShader("res/shaders/screen.vs", "res/shaders/screen.fs");
-    Texture cubeTexture("res/textures/cobblestone.png", GL_REPEAT);
-    Texture cube_n("res/textures/cobblestone_n.png",GL_REPEAT);
-    Texture cube_s("res/textures/cobblestone_s.png", GL_REPEAT);
-    Texture woodTexture("res/textures/birch_planks.png", GL_REPEAT);
-    Texture wood_n("res/textures/birch_planks_n.png", GL_REPEAT);
-    Texture wood_s("res/textures/birch_planks_s.png", GL_REPEAT);
-    Texture smooth_stone("res/textures/smooth_stone.png", GL_REPEAT);
-    Texture smooth_stone_n("res/textures/smooth_stone_n.png", GL_REPEAT);
-    Texture smooth_stone_s("res/textures/smooth_stone_n.png", GL_REPEAT);
 
     ourShader.use();
-    ourShader.setInt("floorTexture", 0);
-    ourShader.setInt("depthMap", 1);
-    ourShader.setInt("normalMap", 2);
-    ourShader.setInt("specularMap", 3);
-    simpleDepthShader.attach_Geo("res/shaders/shadow.gs");
+    ourShader.setInt("albedoMap", 0);
+    ourShader.setInt("normalMap", 1);
+    ourShader.setInt("armMap", 2);
+
+    unsigned int cube_layout[] = { 3 };
+    VAO cubeVAO(cube, sizeof(cube), cube_layout, 1);
+    
     //设置uniform缓冲
     unsigned int uboMatrices;
     glGenBuffers(1, &uboMatrices);
@@ -295,44 +106,77 @@ int main()
     glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
     glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
 
 
     ourShader.setUniformBind("Matrices", 0);
-    lightShader.setUniformBind("Matrices", 0);
     
-    glm::vec3 lightPos(1.0f, 4.0f, 5.0f);
+    glm::vec3 lightPositions[] = {
+       glm::vec3(0.0f, 0.0f, 5.0f),
+    };
+    glm::vec3 lightColors[] = {
+        glm::vec3(150.0f, 150.0f, 150.0f),
+    };
 
-    GLuint depthMapFBO;
-    glGenFramebuffers(1, &depthMapFBO);
+    glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
+    char obj_path[] = "res/models/128_ball.obj";
+    Model ball(obj_path);
 
-    const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+    //通过一个帧缓冲渲染环境立方体，再进行渲染六次存储立方体贴图
+    unsigned int captureFBO;
+    unsigned int captureRBO;
+    glGenFramebuffers(1, &captureFBO);
+    glGenRenderbuffers(1, &captureRBO);
 
-    GLuint depthCubemap;
-    glGenTextures(1, &depthCubemap);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
-    for (GLuint i = 0; i < 6; ++i)
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
-            SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
+
+    //立方体贴图
+    unsigned int envCubemap;
+    glGenTextures(1, &envCubemap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 512, 512, 0, GL_RGB, GL_FLOAT, nullptr);
+    }
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //设置六个面的观察以及投影矩阵
+    glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+    glm::mat4 captureViews[] =
+    {
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+    };
+    boxShader.use();
+    boxShader.setInt("equirectangularMap", 0);
+    boxShader.setMat4("projection", captureProjection);
+    skybox.Bind(GL_TEXTURE0);
+    glViewport(0, 0, 512, 512);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemap, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "Framebuffer not complete!" << std::endl;
+    //每一个面渲染一次
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        boxShader.setMat4("view", captureViews[i]);
+        //设置好视角后将纹理渲染到该纹理附件上
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        cubeVAO.bind();
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //恢复到主缓冲
 
-
-    glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
-    char obj_path[] = "res/models/woodball.obj";
-    Model ball(obj_path);
+    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     while (!glfwWindowShouldClose(window))
     {
         
@@ -345,8 +189,6 @@ int main()
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
-        lightPos.x = 4 * glm::cos(currentFrame);
-        lightPos.z = 4 * glm::sin(currentFrame);
         //设置公共变量存储摄像机矩阵
         glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
@@ -360,45 +202,33 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         
-        GLfloat aspect = (GLfloat)SHADOW_WIDTH / (GLfloat)SHADOW_HEIGHT;
-        GLfloat near = 1.0f;
-        GLfloat far = 25.0f;
-        glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, far);
-
-        
-       
-        
-        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-
-        
+  
         ourShader.use();
-        
-        ourShader.setVec3("viewPos", camera.Position);
-        ourShader.setVec3("lightPos", lightPos);
-        ourShader.setInt("blinn", blinn);
+        lightPositions[0]=glm::vec3(3*glm::cos(currentFrame),0,3*glm::sin(currentFrame));
+        ourShader.setVec3("camPos", camera.Position);
+        ourShader.setVec3("lightPositions[0]", lightPositions[0]);
+        ourShader.setVec3("lightColors[0]", lightColors[0]);
+
         
         model = glm::mat4(1.0f);
         ourShader.setMat4("model", model);
-        woodTexture.Bind(GL_TEXTURE0);
-        wood_n.Bind(GL_TEXTURE2);
-        wood_s.Bind(GL_TEXTURE3);
-        instanceVAO.bind();
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        smooth_stone.Bind(GL_TEXTURE0);
-        smooth_stone_n.Bind(GL_TEXTURE2);
-        smooth_stone_s.Bind(GL_TEXTURE3);
+        albedo.Bind(GL_TEXTURE0);
+        normal.Bind(GL_TEXTURE1);
+        arm.Bind(GL_TEXTURE2);
         ball.Draw();
 
-
-        model = glm::mat4(1.0);
-        model = glm::translate(model, lightPos);
-        lightShader.use();
-        lightShader.setMat4("model", model);
-        skyboxVAO.bind();
+        glDepthMask(GL_FALSE);
+        skyboxShader.use();
+        cubeVAO.bind();
+        skyboxShader.setMat4("projection", projection);
+        skyboxShader.setMat4("view", glm::mat3(camera.GetViewMatrix()));
+        skyboxShader.setInt("samplerCube", 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDepthMask(GL_TRUE);
+
+
         glfwSwapBuffers(window);
         glfwPollEvents();
         

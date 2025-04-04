@@ -39,6 +39,9 @@
     <ClCompile Include="src\VAO.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\Model.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Dependencies\glad\include\glad\glad.h">
@@ -77,6 +80,9 @@
     <ClInclude Include="src\VAO.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\Model.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Dependencies\GLEW\doc\advanced.html" />
@@ -106,6 +112,11 @@
     <None Include="res\shaders\simpleDepthShader.vs" />
     <None Include="res\shaders\simpleDepthShader.fs" />
     <None Include="res\shaders\shadow.gs" />
+    <None Include="assimp-vc143-mtd.dll" />
+    <None Include="res\shaders\PBR.fs" />
+    <None Include="res\shaders\PBR.vs" />
+    <None Include="res\shaders\IBL.vs" />
+    <None Include="res\shaders\IBL.fs" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\container.jpg">
