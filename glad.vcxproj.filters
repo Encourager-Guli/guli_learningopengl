@@ -83,6 +83,9 @@
     <ClInclude Include="src\Model.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\Vertex.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Dependencies\GLEW\doc\advanced.html" />
@@ -115,8 +118,14 @@
     <None Include="assimp-vc143-mtd.dll" />
     <None Include="res\shaders\PBR.fs" />
     <None Include="res\shaders\PBR.vs" />
-    <None Include="res\shaders\IBL.vs" />
-    <None Include="res\shaders\IBL.fs" />
+    <None Include="res\shaders\HDR_to_box.fs" />
+    <None Include="res\shaders\HDR_to_box.vs" />
+    <None Include="res\shaders\irradiance.fs" />
+    <None Include="res\shaders\irradiance.vs" />
+    <None Include="res\shaders\prefilter.vs" />
+    <None Include="res\shaders\prefilter.fs" />
+    <None Include="res\shaders\brdflut.vs" />
+    <None Include="res\shaders\brdflut.fs" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\container.jpg">

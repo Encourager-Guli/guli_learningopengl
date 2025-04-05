@@ -85,9 +85,15 @@ int main()
     //天空盒着色器，接收生成的立方体贴图作为天空盒
     Shader skyboxShader("res/shaders/skybox.vs", "res/shaders/skybox.fs");
 
-    Texture albedo("res/textures/mental/rusty_metal_04_diff_2k.png",GL_REPEAT,true);
-    Texture normal("res/textures/mental/rusty_metal_04_nor_gl_2k.png", GL_REPEAT,true);
-    Texture arm("res/textures/mental/rusty_metal_04_arm_2k.png", GL_REPEAT, true);
+    //预过滤着色器，接收生成的立方体贴图生成多个mip等级的贴图，用于镜面计算
+    Shader prefilterShader("res/shaders/prefilter.vs", "res/shaders/prefilter.fs");
+
+    //BRDF着色器，用于生成积分贴图
+    Shader brdfShader("res/shaders/brdflut.vs", "res/shaders/brdflut.fs");
+
+    Texture albedo("res/textures/tile/granite_tile_diff_1k.png",GL_REPEAT,true);
+    Texture normal("res/textures/tile/granite_tile_nor_gl_1k.png", GL_REPEAT,true);
+    Texture arm("res/textures/tile/granite_tile_arm_1k.png", GL_REPEAT, true);
     Texture skybox("res/textures/mirrored_hall_1k.hdr", GL_CLAMP_TO_EDGE, true, true);
 
 
@@ -96,9 +102,12 @@ int main()
     ourShader.setInt("normalMap", 1);
     ourShader.setInt("armMap", 2);
     ourShader.setInt("irradianceMap", 3);
+    ourShader.setInt("prefilterMap", 4);
+    ourShader.setInt("brdfLUT", 5);
     unsigned int cube_layout[] = { 3 };
+    unsigned int quad_layout[] = { 3,2 };
     VAO cubeVAO(cube, sizeof(cube), cube_layout, 1);
-    
+    VAO quadVAO(quad, sizeof(quad), quad_layout, 2);
     //设置uniform缓冲
     unsigned int uboMatrices;
     glGenBuffers(1, &uboMatrices);
@@ -144,7 +153,7 @@ int main()
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     //设置六个面的观察以及投影矩阵
     glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
@@ -173,6 +182,9 @@ int main()
         cubeVAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
+    //生成mipmap供镜面计算使用
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
     //接下来生成辐照图
 
@@ -210,6 +222,77 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
     }
+    //接下来生成镜面环境光的卷积贴图
+    unsigned int prefilterMap;
+    glGenTextures(1, &prefilterMap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 128, 128, 0, GL_RGB, GL_FLOAT, nullptr);
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+    //生成mipmap
+    prefilterShader.use();
+    prefilterShader.setInt("environmentMap", 0);
+    prefilterShader.setMat4("projection", captureProjection);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    unsigned int maxMipLevels = 5;
+    //生成5个mip等级的立方体贴图
+    for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
+    {
+        // reisze framebuffer according to mip-level size.
+        unsigned int mipWidth = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+        unsigned int mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+        glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+        glViewport(0, 0, mipWidth, mipHeight);
+
+        float roughness = (float)mip / (float)(maxMipLevels - 1);
+        prefilterShader.setFloat("roughness", roughness);
+        for (unsigned int i = 0; i < 6; ++i)
+        {
+            prefilterShader.setMat4("view", captureViews[i]);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            cubeVAO.bind();
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+    }
+    //BRDF的处理
+    unsigned int brdfLUTTexture;
+    glGenTextures(1, &brdfLUTTexture);
+
+    // pre-allocate enough memory for the LUT texture.
+    glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 512, 512, 0, GL_RG, GL_FLOAT, 0);
+    // be sure to set wrapping mode to GL_CLAMP_TO_EDGE
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
+
+    glViewport(0, 0, 512, 512);
+    brdfShader.use();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    quadVAO.bind();
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //恢复到主缓冲
@@ -255,6 +338,11 @@ int main()
         arm.Bind(GL_TEXTURE2);
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+
         ball.Draw();
 
         glDepthFunc(GL_LEQUAL);
@@ -265,7 +353,7 @@ int main()
         skyboxShader.setMat4("view", glm::mat3(camera.GetViewMatrix()));
         skyboxShader.setInt("samplerCube", 0);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glDepthMask(GL_TRUE);
 

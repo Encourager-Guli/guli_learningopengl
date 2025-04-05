@@ -180,6 +180,8 @@
     <None Include="Dependencies\GLEW\doc\wglew.html" />
     <None Include="res\shaders\3.3.shader.fs" />
     <None Include="res\shaders\3.3.shader.vs" />
+    <None Include="res\shaders\brdflut.fs" />
+    <None Include="res\shaders\brdflut.vs" />
     <None Include="res\shaders\depth_testing.fs" />
     <None Include="res\shaders\depth_testing.vs" />
     <None Include="res\shaders\geo.gs" />
@@ -193,6 +195,8 @@
     <None Include="res\shaders\mirror.vs" />
     <None Include="res\shaders\PBR.fs" />
     <None Include="res\shaders\PBR.vs" />
+    <None Include="res\shaders\prefilter.fs" />
+    <None Include="res\shaders\prefilter.vs" />
     <None Include="res\shaders\screen.fs" />
     <None Include="res\shaders\screen.vs" />
     <None Include="res\shaders\shaderSingleColor.fs" />
