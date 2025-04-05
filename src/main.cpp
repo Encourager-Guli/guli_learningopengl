@@ -91,10 +91,10 @@ int main()
     //BRDF着色器，用于生成积分贴图
     Shader brdfShader("res/shaders/brdflut.vs", "res/shaders/brdflut.fs");
 
-    Texture albedo("res/textures/tile/granite_tile_diff_1k.png",GL_REPEAT,true);
-    Texture normal("res/textures/tile/granite_tile_nor_gl_1k.png", GL_REPEAT,true);
-    Texture arm("res/textures/tile/granite_tile_arm_1k.png", GL_REPEAT, true);
-    Texture skybox("res/textures/mirrored_hall_1k.hdr", GL_CLAMP_TO_EDGE, true, true);
+    Texture albedo("res/textures/wood/rosewood_veneer1_diff_1k.png",GL_REPEAT,true);
+    Texture normal("res/textures/wood/rosewood_veneer1_nor_gl_1k.png", GL_REPEAT,true);
+    Texture arm("res/textures/wood/rosewood_veneer1_arm_1k.png", GL_REPEAT, true);
+    Texture skybox("res/textures/sunset_jhbcentral_1k.hdr", GL_CLAMP_TO_EDGE, true, true);
 
 
     ourShader.use();
@@ -353,7 +353,7 @@ int main()
         skyboxShader.setMat4("view", glm::mat3(camera.GetViewMatrix()));
         skyboxShader.setInt("samplerCube", 0);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glDepthMask(GL_TRUE);
 
